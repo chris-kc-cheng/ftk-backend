@@ -9,4 +9,4 @@ def index():
 
 @app.route('/ticker/<ticker>')
 def get_price(ticker):
-    return ftk.get_yahoo(ticker)
+    return ftk.get_yahoo(ticker).to_json()
