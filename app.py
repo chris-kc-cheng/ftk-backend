@@ -1,11 +1,12 @@
+import os
 from flask import Flask
 import toolkit as ftk
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def index():
-    return "<p>Financial Toolkit</p>"
+    return f'<p>Financial Toolkit - {os.environ.get("SECRET_KEY")}</p>'
 
 @app.route('/ticker/<ticker>')
 def get_price(ticker):
