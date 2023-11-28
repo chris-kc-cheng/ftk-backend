@@ -1,5 +1,6 @@
 gunicorn
 flask==2.2.5
+flask-cors
 flask-mongoengine
 flask-praetorian
 flask_session

@@ -1,5 +1,6 @@
 import os, secrets
 from flask import Flask, request, jsonify, session
+from flask_cors import CORS
 from flask_mongoengine import MongoEngine
 from flask_session import Session
 import flask_praetorian
@@ -19,6 +20,7 @@ guard = flask_praetorian.Praetorian()
 db = MongoEngine(app)
 guard.init_app(app, User)
 sess = Session(app)
+CORS(app)
 
 @app.route('/')
 def index():
@@ -66,7 +68,7 @@ def counter():
 def get_price(ticker):
     return ftk.get_yahoo(ticker).to_json()
 
-@app.route('/notes/new')
+@app.route('/notes/new', methods=['POST'])
 def add_notes():
     content = request.json['content']
     note = Note(content=content).save()
