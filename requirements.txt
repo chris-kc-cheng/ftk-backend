@@ -1,3 +1,6 @@
 gunicorn
-flask
+flask==2.2.5
+flask-mongoengine
+flask-praetorian
+flask_session
 fintoolkit
