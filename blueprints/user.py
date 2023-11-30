@@ -41,14 +41,20 @@ def refresh():
 @bp_user.route('/reset', methods=['POST'])
 @flask_praetorian.auth_required
 def reset_password():
-    user = flask_praetorian.current_user()
-    print('Reset password for', user)
+    user = flask_praetorian.current_user()    
     req = request.get_json(force=True)
-    old_password = req.get('old_password', None)
-    new_password = req.get('new_password', None)
-    confirm_password = req.get('confirm_password', None)
-    guard.authenticate(user.username, old_password)
-    return {}, 200
+    old_password = req.get('oldPassword', None)
+    new_password = req.get('newPassword', None)
+    confirm_password = req.get('confirmPassword', None)
+    try:
+        guard.authenticate(user.username, old_password)
+    except flask_praetorian.exceptions.AuthenticationError:
+        return {'status': 'error', 'message': 'Invalid old password'}, 200
+    if new_password != confirm_password:
+        return {'status': 'warning', 'message': 'Passwords do not match'}, 200
+    user.password = guard.hash_password(new_password)
+    user.save()
+    return {'status': 'success', 'message': 'Password is updated'}, 200
 
 @bp_user.route('/profile', methods=['GET'])
 @flask_praetorian.auth_required
@@ -56,9 +62,9 @@ def profile():
     user = flask_praetorian.current_user()
     ret = {
         'username': user.username,
-        'first_name': user.firstName,
-        'last_name': user.lastName,
-        'is_active': user.isActive,
+        'firstName': user.firstName,
+        'lastName': user.lastName,
+        'isActive': user.isActive,
         'roles': user.rolenames,
         #'last_login': user.lastLogin
     }

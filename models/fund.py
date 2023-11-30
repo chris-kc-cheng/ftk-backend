@@ -2,4 +2,7 @@ from mongoengine import Document, fields
 
 class Fund(Document):
     name = fields.StringField(required=True, unique=True)
-    asset_class = fields.ListField(fields.StringField())
+    firm = fields.StringField(required=True)
+    assetClasses = fields.ListField(fields.StringField())
+    #portfolioManagers = fields.ListField(fields.StringField())
+    launchDate = fields.DateField()

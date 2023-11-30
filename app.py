@@ -2,10 +2,10 @@ import os, secrets
 
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
-from flask_session import Session
 import flask_praetorian
-
 import toolkit as ftk
+from flask_session import Session
+
 from extensions import db, guard
 from models import User, Note
 from blueprints.user import bp_user
@@ -64,7 +64,3 @@ def add_notes():
 @app.route('/notes/all')
 def get_notes():
     return jsonify(Note.objects)
-
-@app.route('/funds')
-def funds():
-    return jsonify([f'Fund {x}' for x in range(2000)])
