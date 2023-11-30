@@ -4,8 +4,11 @@ from mongoengine import Document, fields, DoesNotExist
 class User(Document):
     username = fields.StringField(required=True, unique=True)
     password = fields.StringField(required=True)
-    roles = fields.StringField()
-    is_active = fields.BooleanField(default=True)
+    firstName = fields.StringField(required=True)
+    lastName = fields.StringField(required=True)
+    isActive = fields.BooleanField(default=True)
+    #lastLogin = fields.DateTimeField()
+    roles = fields.ListField(fields.StringField())
 
     @classmethod
     def lookup(cls, username):
@@ -23,11 +26,11 @@ class User(Document):
 
     @property
     def rolenames(self):
-        return []
+        return self.roles
 
     @property
     def identity(self):
         return dumps(self.id)
 
     def is_valid(self):
-        return self.is_active
+        return self.isActive
