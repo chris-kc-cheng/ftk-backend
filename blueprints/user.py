@@ -41,7 +41,7 @@ def refresh():
 @bp_user.route('/reset', methods=['POST'])
 @flask_praetorian.auth_required
 def reset_password():
-    user = flask_praetorian.current_user()    
+    user = flask_praetorian.current_user()
     req = request.get_json(force=True)
     old_password = req.get('oldPassword', None)
     new_password = req.get('newPassword', None)

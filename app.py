@@ -10,6 +10,7 @@ from extensions import db, guard
 from models import User, Note
 from blueprints.user import bp_user
 from blueprints.fund import bp_fund
+from blueprints.note import bp_note
 
 app = Flask(__name__)
 
@@ -35,7 +36,7 @@ CORS(app)
 # Blueprints
 app.register_blueprint(bp_user, url_prefix='/user')
 app.register_blueprint(bp_fund, url_prefix='/fund')
-
+app.register_blueprint(bp_note, url_prefix='/note')
 
 @app.route('/')
 def index():
