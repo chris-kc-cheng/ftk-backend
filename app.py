@@ -7,7 +7,7 @@ import toolkit as ftk
 from flask_session import Session
 
 from extensions import db, guard
-from models import User, Note
+from models import User
 from blueprints.user import bp_user
 from blueprints.fund import bp_fund
 from blueprints.note import bp_note
@@ -55,13 +55,3 @@ def counter():
 @app.route('/ticker/<ticker>')
 def get_price(ticker):
     return ftk.get_yahoo(ticker).to_json()
-
-@app.route('/notes/new', methods=['POST'])
-def add_notes():
-    content = request.json['content']
-    note = Note(content=content).save()
-    return jsonify({'id': str(note.id)})
-
-@app.route('/notes/all')
-def get_notes():
-    return jsonify(Note.objects)

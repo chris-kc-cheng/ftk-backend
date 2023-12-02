@@ -5,16 +5,9 @@ from models.fund import Fund
 
 bp_fund = Blueprint('fund', __name__)
 
-@bp_fund.route('/add', methods=['POST'])
-@flask_praetorian.auth_required
-def add():
-    a = int(request.json['a'])
-    b = int(request.json['b'])
-    return jsonify({'sum': a + b})
-
 @bp_fund.route('/create', methods=['POST'])
 @flask_praetorian.auth_required
-def create():
+def create_fund():
     req = request.get_json(force=True)
     print('Creating', req)
     # Frontend sends empty string for name and None for launchDate and empty array for assetClasses
@@ -47,16 +40,17 @@ def create():
         'id': str(fund.id)
     })
 
-@bp_fund.route('/all')
+@bp_fund.route('/')
 @flask_praetorian.auth_required
-def all():
+def get_funds():
     """Get list of all funds for autocomplete
     """
     return jsonify(Fund.objects.only('name').order_by('name')), 200
 
-@bp_fund.route('/detail/<id>')
+@bp_fund.route('/<id>')
 @flask_praetorian.auth_required
-def detail(id):
+def get_fund(id):
+    print('Fund detail')
     fund = Fund.objects.get(pk=id)
     ret = {
         'name': fund.name,

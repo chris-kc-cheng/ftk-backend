@@ -6,7 +6,7 @@ from .fund import Fund
 class Note(Document):
     author = fields.ReferenceField(User)
     fund = fields.ReferenceField(Fund)
-    modified_date = fields.DateTimeField(default=datetime.datetime.now)
+    modifiedDate = fields.DateTimeField(default=datetime.datetime.now)
     content = fields.StringField(required=True)
     published = fields.BooleanField(default=False)
     # Meeting date, participants
