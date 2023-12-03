@@ -1,9 +1,13 @@
 from flask import Blueprint, request, jsonify
 import flask_praetorian
+import json
+from bson import json_util
+from bson.objectid import ObjectId
 from mongoengine.errors import NotUniqueError
 from models.fund import Fund
 
 bp_fund = Blueprint('fund', __name__)
+
 
 @bp_fund.route('/create', methods=['POST'])
 @flask_praetorian.auth_required
@@ -27,7 +31,8 @@ def create_fund():
         return jsonify({
             'status': 'error',
             'message': 'At least one asset class must be specified'})
-    fund = Fund(name=fundName, firm=firmName, assetClasses=assetClasses, launchDate=launchDate)
+    fund = Fund(name=fundName, firm=firmName,
+                assetClasses=assetClasses, launchDate=launchDate)
     try:
         fund.save()
     except NotUniqueError:
@@ -40,6 +45,7 @@ def create_fund():
         'id': str(fund.id)
     })
 
+
 @bp_fund.route('/')
 @flask_praetorian.auth_required
 def get_funds():
@@ -47,15 +53,68 @@ def get_funds():
     """
     return jsonify(Fund.objects.only('name').order_by('name')), 200
 
+
 @bp_fund.route('/<id>')
 @flask_praetorian.auth_required
 def get_fund(id):
     print('Fund detail')
-    fund = Fund.objects.get(pk=id)
-    ret = {
-        'name': fund.name,
-        'firm': fund.firm,
-        'assetClasses': fund.assetClasses,
-        'launchDate': fund.launchDate
-    }
-    return jsonify(ret), 200
+    fund = list(Fund.objects().aggregate([
+        {
+            '$match': {
+                '_id': ObjectId(id)
+            }
+        }, {
+            '$lookup': {
+                'from': 'note',
+                'localField': '_id',
+                'foreignField': 'fund',
+                'as': 'notes'
+            }
+        }, {
+            '$lookup': {
+                'from': 'user',
+                'localField': 'notes.author',
+                'foreignField': '_id',
+                'as': 'authors'
+            }
+        }, {
+            '$set': {
+                'notes': {
+                    '$map': {
+                        'input': '$notes',
+                        'in': {
+                            '$mergeObjects': [
+                                '$$this', {
+                                    'author': {
+                                        '$arrayElemAt': [
+                                            '$authors', {
+                                                '$indexOfArray': [
+                                                    '$authors.id', '$$this.id'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }, {
+            '$project': {
+                'name': '$name',
+                'firm': '$firm',
+                'assetClasses': '$assetClasses',
+                'launchDate': '$launchDate',
+                'notes.fund._id': '$_id',
+                'notes.author.firstName': 1,
+                'notes.author.lastName': 1,
+                'notes._id': 1,
+                'notes.content': 1,
+                'notes.modifiedDate': 1,
+                'notes.published': 1
+            }
+        }
+    ]))[0]
+    ret = json.loads(json_util.dumps(fund))
+    return ret, 200

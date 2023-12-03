@@ -52,7 +52,8 @@ def get_notes():
                 }
             }, {
                 '$project': {
-                    'fund.name': 1, 
+                    'fund.name': 1,
+                    'fund._id': 1,
                     'author.firstName': 1, 
                     'author.lastName': 1, 
                     'content': 1, 
@@ -85,7 +86,8 @@ def get_note(id):
     note = Note.objects.get(pk=id)
     ret = {
         'fundName': note.fund.name,
-        'content': note.content
+        'content': note.content,
+        'published': note.published
     }
     print('Detail', ret)
     return jsonify(ret), 200
