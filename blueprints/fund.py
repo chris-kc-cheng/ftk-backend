@@ -1,8 +1,5 @@
 from flask import Blueprint, request, jsonify
 import flask_praetorian
-import json
-from bson import json_util
-from bson.objectid import ObjectId
 from mongoengine.errors import NotUniqueError
 from models.fund import Fund
 from models.note import Note
@@ -66,6 +63,7 @@ def get_fund(id):
 @bp_fund.route('/<id>/note')
 @flask_praetorian.auth_required
 def get_fund_notes(id):
-    print('Fund Notes')
-    notes = Note.objects(fundId=id)
+    """All notes including drafts
+    """
+    notes = Note.objects(fundId=id).order_by('-modifiedDate')
     return jsonify(notes), 200

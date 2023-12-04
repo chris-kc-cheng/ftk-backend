@@ -12,7 +12,7 @@ bp_note = Blueprint('note', __name__)
 def get_notes():
     skip = int(request.args.get('skip', default=0))
     limit = int(request.args.get('limit', default=10))
-    return jsonify(Note.objects[skip:skip+limit])
+    return jsonify(Note.objects(published=True).order_by('-modifiedDate')[skip:skip+limit])
 
 @bp_note.route('/', methods=['POST'])
 @flask_praetorian.auth_required
@@ -40,13 +40,7 @@ def create():
 @flask_praetorian.auth_required
 def get_note(id):
     note = Note.objects.get(pk=id)
-    ret = {
-        'fundName': note.fundName,
-        'content': note.content,
-        'published': note.published
-    }
-    print('Detail', ret)
-    return jsonify(ret), 200
+    return jsonify(note), 200
 
 
 @bp_note.route('/<id>', methods=['PUT'])
