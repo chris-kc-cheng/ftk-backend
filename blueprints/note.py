@@ -34,16 +34,16 @@ def get_notes():
                     'as': 'author'
                 }
             }, {
+                '$unwind': {
+                    'path': '$author',
+                    'preserveNullAndEmptyArrays': True
+                }
+            }, {
                 '$lookup': {
                     'from': 'fund',
                     'localField': 'fund',
                     'foreignField': '_id',
                     'as': 'fund'
-                }
-            }, {
-                '$unwind': {
-                    'path': '$author',
-                    'preserveNullAndEmptyArrays': True
                 }
             }, {
                 '$unwind': {
@@ -59,9 +59,27 @@ def get_notes():
                     'content': 1, 
                     'modifiedDate': 1
                 }
+            }, {
+                '$addFields': {
+                    'authorName': {
+                        '$concat': [
+                            '$author.firstName', ' ', '$author.lastName'
+                        ]
+                    }
+                }
+            }, {
+                '$project': {
+                    'fundId': '$fund._id', 
+                    'fundName': '$fund.name', 
+                    'authorId': '$author._id', 
+                    'authorName': '$authorName', 
+                    'noteId': '$_id', 
+                    'modifiedDate': 1, 
+                    'content': 1, 
+                    'published': 1
+                }
             }
         ]))
-
 
 @bp_note.route('/', methods=['POST'])
 @flask_praetorian.auth_required
@@ -78,7 +96,6 @@ def create():
     note.save()
     print('Creating note', str(note.id))
     return {'id': str(note.id)}
-
 
 @bp_note.route('/<id>')
 @flask_praetorian.auth_required

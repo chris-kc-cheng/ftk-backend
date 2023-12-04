@@ -57,8 +57,16 @@ def get_funds():
 @bp_fund.route('/<id>')
 @flask_praetorian.auth_required
 def get_fund(id):
-    print('Fund detail')
-    fund = list(Fund.objects().aggregate([
+    print('Fund Details')
+    fund = Fund.objects.get(pk=id)
+    return jsonify(fund), 200
+
+
+@bp_fund.route('/<id>/note')
+@flask_praetorian.auth_required
+def get_fund_notes(id):
+    print('Fund Notes')
+    notes = Fund.objects.aggregate([
         {
             '$match': {
                 '_id': ObjectId(id)
@@ -71,6 +79,10 @@ def get_fund(id):
                 'as': 'notes'
             }
         }, {
+            '$unwind': {
+                'path': '$notes'
+            }
+        }, {
             '$lookup': {
                 'from': 'user',
                 'localField': 'notes.author',
@@ -78,43 +90,30 @@ def get_fund(id):
                 'as': 'authors'
             }
         }, {
-            '$set': {
+            '$unwind': {
+                'path': '$authors'
+            }
+        }, {
+            '$addFields': {
                 'notes': {
-                    '$map': {
-                        'input': '$notes',
-                        'in': {
-                            '$mergeObjects': [
-                                '$$this', {
-                                    'author': {
-                                        '$arrayElemAt': [
-                                            '$authors', {
-                                                '$indexOfArray': [
-                                                    '$authors.id', '$$this.id'
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
+                    'authorName': {
+                        '$concat': [
+                            '$authors.firstName', ' ', '$authors.lastName'
+                        ]
                     }
                 }
             }
         }, {
             '$project': {
-                'name': '$name',
-                'firm': '$firm',
-                'assetClasses': '$assetClasses',
-                'launchDate': '$launchDate',
-                'notes.fund._id': '$_id',
-                'notes.author.firstName': 1,
-                'notes.author.lastName': 1,
-                'notes._id': 1,
-                'notes.content': 1,
-                'notes.modifiedDate': 1,
-                'notes.published': 1
+                'fundId': '$notes.fund',
+                'authorId': '$notes.author',
+                'authorName': '$notes.authorName',
+                'noteId': '$notes._id',
+                'modifiedDate': '$notes.modifiedDate',
+                'content': '$notes.content',
+                'published': '$notes.published'
             }
         }
-    ]))[0]
-    ret = json.loads(json_util.dumps(fund))
-    return ret, 200
+    ])
+    ret = json.loads(json_util.dumps(notes))
+    return jsonify(ret), 200
