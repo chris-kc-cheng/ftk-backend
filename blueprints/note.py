@@ -12,74 +12,7 @@ bp_note = Blueprint('note', __name__)
 def get_notes():
     skip = int(request.args.get('skip', default=0))
     limit = int(request.args.get('limit', default=10))
-    return json_util.dumps(Note.objects().aggregate(
-        [
-            {
-                '$match': {
-                    'published': True
-                }
-            }, {
-                '$sort': {
-                    'modifiedDate': -1
-                }
-            }, {
-                '$skip': skip
-            }, {
-                '$limit': limit
-            }, {
-                '$lookup': {
-                    'from': 'user',
-                    'localField': 'author',
-                    'foreignField': '_id',
-                    'as': 'author'
-                }
-            }, {
-                '$unwind': {
-                    'path': '$author',
-                    'preserveNullAndEmptyArrays': True
-                }
-            }, {
-                '$lookup': {
-                    'from': 'fund',
-                    'localField': 'fund',
-                    'foreignField': '_id',
-                    'as': 'fund'
-                }
-            }, {
-                '$unwind': {
-                    'path': '$fund',
-                    'preserveNullAndEmptyArrays': True
-                }
-            }, {
-                '$project': {
-                    'fund.name': 1,
-                    'fund._id': 1,
-                    'author.firstName': 1, 
-                    'author.lastName': 1, 
-                    'content': 1, 
-                    'modifiedDate': 1
-                }
-            }, {
-                '$addFields': {
-                    'authorName': {
-                        '$concat': [
-                            '$author.firstName', ' ', '$author.lastName'
-                        ]
-                    }
-                }
-            }, {
-                '$project': {
-                    'fundId': '$fund._id', 
-                    'fundName': '$fund.name', 
-                    'authorId': '$author._id', 
-                    'authorName': '$authorName', 
-                    'noteId': '$_id', 
-                    'modifiedDate': 1, 
-                    'content': 1, 
-                    'published': 1
-                }
-            }
-        ]))
+    return jsonify(Note.objects[skip:skip+limit])
 
 @bp_note.route('/', methods=['POST'])
 @flask_praetorian.auth_required
@@ -90,9 +23,15 @@ def create():
     print('Creating Note', req)
     # Frontend sends empty string for name and None for launchDate and empty array for assetClasses
     fundId = req.get('fundId', '')
-    print(Fund.objects.get(pk=fundId).id)
-    note = Note(author=user, fund=Fund.objects.get(
-        pk=fundId), content='', published=False)
+    fund = Fund.objects.get(pk=fundId)
+    print(fund.id)
+    note = Note(
+        authorId=user,
+        authorName=user.firstName + ' ' + user.lastName,
+        fundId=fund,
+        fundName=fund.name,
+        content='',
+        published=False)
     note.save()
     print('Creating note', str(note.id))
     return {'id': str(note.id)}
@@ -102,7 +41,7 @@ def create():
 def get_note(id):
     note = Note.objects.get(pk=id)
     ret = {
-        'fundName': note.fund.name,
+        'fundName': note.fundName,
         'content': note.content,
         'published': note.published
     }

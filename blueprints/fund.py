@@ -5,6 +5,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 from mongoengine.errors import NotUniqueError
 from models.fund import Fund
+from models.note import Note
 
 bp_fund = Blueprint('fund', __name__)
 
@@ -66,54 +67,5 @@ def get_fund(id):
 @flask_praetorian.auth_required
 def get_fund_notes(id):
     print('Fund Notes')
-    notes = Fund.objects.aggregate([
-        {
-            '$match': {
-                '_id': ObjectId(id)
-            }
-        }, {
-            '$lookup': {
-                'from': 'note',
-                'localField': '_id',
-                'foreignField': 'fund',
-                'as': 'notes'
-            }
-        }, {
-            '$unwind': {
-                'path': '$notes'
-            }
-        }, {
-            '$lookup': {
-                'from': 'user',
-                'localField': 'notes.author',
-                'foreignField': '_id',
-                'as': 'authors'
-            }
-        }, {
-            '$unwind': {
-                'path': '$authors'
-            }
-        }, {
-            '$addFields': {
-                'notes': {
-                    'authorName': {
-                        '$concat': [
-                            '$authors.firstName', ' ', '$authors.lastName'
-                        ]
-                    }
-                }
-            }
-        }, {
-            '$project': {
-                'fundId': '$notes.fund',
-                'authorId': '$notes.author',
-                'authorName': '$notes.authorName',
-                'noteId': '$notes._id',
-                'modifiedDate': '$notes.modifiedDate',
-                'content': '$notes.content',
-                'published': '$notes.published'
-            }
-        }
-    ])
-    ret = json.loads(json_util.dumps(notes))
-    return jsonify(ret), 200
+    notes = Note.objects(fundId=id)
+    return jsonify(notes), 200
