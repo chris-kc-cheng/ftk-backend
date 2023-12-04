@@ -15,7 +15,7 @@ from blueprints.note import bp_note
 app = Flask(__name__)
 
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['MONGODB_SETTINGS'] = {'db': 'ftk-db'}
+app.config['MONGODB_HOST'] = os.getenv('MONGODB_HOST')
 
 # React client has to re-login upon each server restart
 # app.config['SECRET_KEY'] = secrets.token_urlsafe()
