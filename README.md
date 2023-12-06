@@ -1,6 +1,5 @@
-# Back-end for the Financial Toolkit Demo using Flask
+# Back-end for the Financial Toolkit Demo using Flask (Deprecated)
 
-The demo is hosted at Render cloud at:
-https://ftk-backend.onrender.com
+The backend with Flask is replaced with a newer one using FastAPI.
 
-Note: The back-end is currently hosted on Render cloud under the free-tier so it may take a minute or two to wake up after 15 minutes of inactivity.
+Please refer to the `ftk-api` repository at: https://github.com/chris-kc-cheng/ftk-api
